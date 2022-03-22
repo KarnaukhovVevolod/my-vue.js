@@ -184,7 +184,11 @@
 </template>
 
 <script>
-export default {
+
+  import { loadTickers, subscribeToTicker } from "./api";
+
+
+  export default {
   name: "App",
   //data() - описываю те данные компонента, которые могут быть
   data() {
@@ -225,13 +229,13 @@ export default {
         }
         const tickerData = localStorage.getItem('cryptonomicon-list');
 
-        //localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers));
         if (tickerData) {
             this.tickers = JSON.parse(tickerData);
-            this.tickers.forEach(ticker =>{
-                this.subscribeToUpdates(ticker)
+            this.tickers.forEach(ticker => {
+              subscribeToTicker(ticker.name) , ()=>{}
             });
         }
+        //setInterval(this.updateTickers,20000);
     },
     //computed -это поля не методы они не могут принимать значения
 
@@ -289,26 +293,34 @@ export default {
           return this.tickers.filter(ticker => ticker.name.includes(this.filter)).slice(start,end);
 
       },*/
-    subscribeToUpdates(newTicker){
-        /*
-        setInterval(async () => {
+    formatPrice(price) {
+      if(price === "-"){return price;}
+      return price > 1 ? price.toFixed(2) : price.toPrecision(3);
+    },
 
-            const f = await fetch(
-                `https://min-api.cryptocompare.com/data/price?fsym=${newTicker.name}&tsyms=USD&api_key=87b58af34b829246ce6b3030f91bf01c099098858e7a3d64abfca5fa4b9e8cb0`
-            );
-            const data = await f.json();
-            //newTicker.price = data.USD;
-            //this.tickers[this.tickers.length - 1].price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(3);
+    async updateTickers(newTicker){
+        if (!this.tickers.length) {
+          return;
+        }
+            const data = await loadTickers(this.tickers.map(t=>t.name));
+            //console.log(this.tickers.map(t=>t.name));
+            //console.log(data);
+            this.tickers.forEach(ticker => {
+              const price = data[ticker.name.toUpperCase()];
+              ticker.price = price ? this.formatPrice(price) : '-';
+
+            });
+            /*
             this.tickers.find((t) => t.name === newTicker.name).price =
                 data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(3);
             console.log(data);
             console.log(data.USD);
             if (this.sel?.name === newTicker.name) {
                 this.graph.push(data.USD);
-            }
-        }, 10000);
-        */
-    },
+            }*/
+        }
+        /**/
+    ,
     addDop(l=null) {
       l= l.toUpperCase();
       var get = this.nameUse.indexOf(l);
@@ -334,7 +346,6 @@ export default {
     onInput(ee) {
       const e = ee.target.value.toUpperCase();
 
-      //const getBitoc = this.dataALL.find((el, indx)=> el==e);
       const getBitoc = this.dataALL.indexOf(e);
       var startInd;
       if ((getBitoc > 0) && (getBitoc < this.dataALL.length - 3)) {
@@ -366,75 +377,32 @@ export default {
 
         //сохраняем данные чтобы не потерялись при перезагрузки
         localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers));
-
-        /*
-      setInterval(async () => {
-
-          const f = await fetch(
-                  `https://min-api.cryptocompare.com/data/price?fsym=${newTicker.name}&tsyms=USD&api_key=87b58af34b829246ce6b3030f91bf01c099098858e7a3d64abfca5fa4b9e8cb0`
-          );
-          const data = await f.json();
-          //newTicker.price = data.USD;
-          //this.tickers[this.tickers.length - 1].price = data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(3);
-          this.tickers.find((t) => t.name === newTicker.name).price =
-                  data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(3);
-          console.log(data);
-          console.log(data.USD);
-          if (this.sel?.name === newTicker.name) {
-            this.graph.push(data.USD);
-          }
-
-
-
-      }, 10000);
-      */
-        this.subscribeToUpdates(newTicker);
+        subscribeToTicker(this.ticker.name,()=>{});
         this.ticker = "";
         this.filter="";
-        //console.log(this.startIndex);
-        //console.log(this.endPageConst);
-        //if (this.endPageConst==(this.startIndex+1) && this.page >1) {
-        //    this.page += 1;
-        //}
+
 
       } else {
         this.dispMess = "block";
       }
 
-
-      //alert(evt.key);
     },
     handleDelete(tickerToRemove) {
       this.tickers = this.tickers.filter((t) => t != tickerToRemove);
       this.nameUse = this.nameUse.filter((t) => t != tickerToRemove.name);
       localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers));
-      /*
-      if (this.endPageConst==this.startIndex && this.page >1) {
-        this.page -= 1;
-      }*/
       if (this.sel === tickerToRemove) {
           this.sel = null;
       }
     },
     select(ticker) {
       this.sel = ticker;
-      //this.graph = [];
     },
-      /*
-    normalizeGraph() {
-      const maxValue = Math.max(...this.graph);
-      const minValue = Math.min(...this.graph);
-      return this.graph.map(
-        (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
-      );
-    },
-      */
     async getApi() {
         const f = await fetch(
                 `https://min-api.cryptocompare.com/data/all/coinlist?summary=true`
         );
         const data = await f.json();
-
 
         for (var key in data.Data) {
           this.dataALL.push(key);
@@ -448,7 +416,6 @@ export default {
     //watch - отслеживает изменение переменных
     //в watch - выносят логику когда что-то меняют на что-то, то исполни что-то
     watch:{
-
       sel() {
           this.graph = [];
       },
@@ -457,26 +424,11 @@ export default {
                 this.page -= 1;
             }
         },
-        /*
-        filter() {
-            //this.page = 1;
-            window.history.pushState(
-                null,
-                document.title,
-                `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
-            );
-        },*/
+
         filter(){
             this.page = 1;
         },
-        /*
-        page() {
-            window.history.pushState(
-                null,
-                document.title,
-                `${window.location.pathname}?filter=${this.filter}&page=${this.page}`
-            );
-        }*/
+
         pageStateOptions(v) {
             window.history.pushState(
                 null,
