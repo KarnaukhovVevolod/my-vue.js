@@ -185,7 +185,7 @@
 
 <script>
 
-  import { loadTickers, subscribeToTicker } from "./api";
+  import { /*loadTickers,*/ subscribeToTicker, unsubscriberFromTicker } from "./api";
 
 
   export default {
@@ -228,18 +228,25 @@
             this.page = windowData.page;
         }
         const tickerData = localStorage.getItem('cryptonomicon-list');
-
+/**/
         if (tickerData) {
             this.tickers = JSON.parse(tickerData);
             this.tickers.forEach(ticker => {
-              subscribeToTicker(ticker.name) , ()=>{}
+              subscribeToTicker(ticker.name , /*(price)=>{
+                console.log("ticker price changed to", price, ticker.name);
+              });*/
+                      newPrice => this.updateTicker(ticker.name, newPrice)
+              );
+
             });
-        }
+        }/**/
         //setInterval(this.updateTickers,20000);
+      //setInterval(loadTickers());
     },
     //computed -это поля не методы они не могут принимать значения
 
   computed: {
+
 
       startIndex() {
           return (this.page - 1) * 6;
@@ -283,6 +290,14 @@
 
   //методы
   methods: {
+
+    updateTicker(tickerName, price) {
+      this.tickers
+              .filter(t => t.name === tickerName)
+              .forEach(t =>{
+                t.price = price;
+              });
+    },
       /*
       filteredTickers() {
           const start = (this.page - 1) * 6;
@@ -297,7 +312,7 @@
       if(price === "-"){return price;}
       return price > 1 ? price.toFixed(2) : price.toPrecision(3);
     },
-
+  /*
     async updateTickers(newTicker){
         if (!this.tickers.length) {
           return;
@@ -310,17 +325,10 @@
               ticker.price = price ? this.formatPrice(price) : '-';
 
             });
-            /*
-            this.tickers.find((t) => t.name === newTicker.name).price =
-                data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(3);
-            console.log(data);
-            console.log(data.USD);
-            if (this.sel?.name === newTicker.name) {
-                this.graph.push(data.USD);
-            }*/
-        }
-        /**/
-    ,
+
+    },
+        */
+
     addDop(l=null) {
       l= l.toUpperCase();
       var get = this.nameUse.indexOf(l);
@@ -377,7 +385,13 @@
 
         //сохраняем данные чтобы не потерялись при перезагрузки
         localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers));
-        subscribeToTicker(this.ticker.name,()=>{});
+
+        //subscribeToTicker(this.ticker.name,()=>{});
+        subscribeToTicker(this.ticker , /*(price)=>{
+                console.log("ticker price changed to", price, ticker.name);
+              });*/
+                newPrice => this.updateTicker(this.ticker, newPrice)
+        );
         this.ticker = "";
         this.filter="";
 
@@ -390,6 +404,7 @@
     handleDelete(tickerToRemove) {
       this.tickers = this.tickers.filter((t) => t != tickerToRemove);
       this.nameUse = this.nameUse.filter((t) => t != tickerToRemove.name);
+      unsubscriberFromTicker(tickerToRemove.name);
       localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers));
       if (this.sel === tickerToRemove) {
           this.sel = null;
