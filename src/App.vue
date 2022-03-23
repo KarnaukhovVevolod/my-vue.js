@@ -64,7 +64,6 @@
           </div>
         </div>
         <button
-          @click="ad"
           v-on:click="ad"
           type="button"
           class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
@@ -106,6 +105,7 @@
             :class="{
               'border-4': sel === t,
             }"
+            class=""
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
@@ -210,6 +210,7 @@
       dataALL:[],
       page: 1,
       filter:"",
+      foolTickers:[],
       //hasNextPage: true,
     };
     //methods - функция
@@ -286,15 +287,25 @@
               page: this.page
           }
       }
+
+
   },
 
   //методы
   methods: {
 
     updateTicker(tickerName, price) {
+      /*
+      if(price == undefined){
+        debugger;
+      }*/
       this.tickers
               .filter(t => t.name === tickerName)
               .forEach(t =>{
+                if (t === this.sel) {
+                  this.graph.push(price);
+                }
+                //if(t=== this.se)
                 t.price = price;
               });
     },
@@ -340,6 +351,10 @@
           price: "-",
         };
         this.tickers.push(newTicker);
+        subscribeToTicker(newTicker.name ,
+                newPrice => this.updateTicker(newTicker.name, newPrice)
+        );
+
       } else {
         this.dispMess = "block";
       }
@@ -379,6 +394,7 @@
         name: this.ticker.toUpperCase(),
         price: "-",
       };
+      //debugger;
       if (this.nameUse.indexOf(this.ticker.toUpperCase()) == -1) {
         this.tickers.push(newTicker);
         this.nameUse.push(this.ticker.toUpperCase());
@@ -387,11 +403,12 @@
         localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers));
 
         //subscribeToTicker(this.ticker.name,()=>{});
-        subscribeToTicker(this.ticker , /*(price)=>{
+        subscribeToTicker(newTicker.name , /*(price)=>{
                 console.log("ticker price changed to", price, ticker.name);
               });*/
-                newPrice => this.updateTicker(this.ticker, newPrice)
+                newPrice => this.updateTicker(newTicker.name, newPrice)
         );
+        alert(newTicker);
         this.ticker = "";
         this.filter="";
 
