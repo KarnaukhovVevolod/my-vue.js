@@ -143,8 +143,11 @@
         <section v-if="sel" class="relative">
           <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
             {{ sel.name }} - USD
-          </h3>
-          <div class="flex items-end border-gray-600 border-b border-l h-64">
+          </h3>   <!-- ref - это возможность получить ссылку на объект,который отрисовали в шаблоне, их вешают и на dom-узлы и на компоненты
+            ref - не реагируют на изменение (не реактивны)
+            ref - нужны тогда, когда вы не можете это получить средствами vue например информация о конкретном dom узле(его ширина,высота,  ит.д.)
+            ref доступен только после того как элемент смонтирован ref не должны использоваться в computed-->
+          <div class="flex items-end border-gray-600 border-b border-l h-64" ref="graph">
             <div
               v-for="(bar, idx) in normalizeGraph"
               :key="idx"
@@ -188,11 +191,14 @@
 <script>
 
   import { /*loadTickers,*/ subscribeToTicker, unsubscriberFromTicker, FOOtick } from "./api";
-
+  import PlusSignIcon from './components/PlusSign.vue';
 
   export default {
   name: "App",
   //data() - описываю те данные компонента, которые могут быть
+    components: {
+      PlusSignIcon
+    },
   data() {
     return {
       ticker: "",
@@ -213,6 +219,7 @@
       page: 1,
       filter:"",
       foolTickers:[],
+      maxGraphElements: 1,
       //hasNextPage: true,
     };
     //methods - функция
@@ -250,11 +257,22 @@
         //setInterval(this.updateTickers,20000);
       //setInterval(loadTickers());
     },
+
+    mounted() {
+      window.addEventListener("resize", this.calculateMaxGraphElements);
+    },
+
+    beforeUnmount() {
+      window.removeEventListener("resize",this.calculateMaxGraphElements);
+    },
     //computed -это поля не методы они не могут принимать значения
 
   computed: {
-
-
+  /*
+    maxGraphElements() {
+      return this.$refs.graph.clientWidth / 38;
+    },
+    */
       startIndex() {
           return (this.page - 1) * 6;
       },
@@ -294,11 +312,24 @@
           }
       }
 
-
   },
 
   //методы
   methods: {
+    calculateMaxGraphElements() {
+      //делаем проверку что не выбрали тикер для графика
+      if (!this.$refs.graph) {
+        return;
+      }
+      this.maxGraphElements = this.$refs.graph.clientWidth / 38;
+
+      //уменьшаем график
+      while(this.graph.length > this.maxGraphElements) {
+        console.log(this.maxGraphElements);
+        this.graph.shift();
+      }
+    },
+
     updateFoolTickers(nameTicker='FOO'){
       //this.foolTickers[nameTicker]=nameTicker;
       //this.foolTickers['FOO']='FOO';
@@ -310,11 +341,24 @@
       if(price == undefined){
         debugger;
       }*/
+      //получаем (с помощью ref) dom-object моего графика
+      //debugger;
+      //console.log('updateTicker', this.$refs.graph);
+      //console.log('uppppppppp');
       this.tickers
               .filter(t => t.name === tickerName)
               .forEach(t =>{
                 if (t === this.sel) {
                   this.graph.push(price);
+                  /*
+                  if(this.maxGraphElements == 1){
+                    this.calculateMaxGraphElements();
+                  }
+                  */
+                  while(this.graph.length > this.maxGraphElements) {
+                    this.graph.shift();
+                  }
+
                 }
                 //if(t=== this.se)
                 t.price = price;
@@ -440,6 +484,16 @@
     },
     select(ticker) {
       this.sel = ticker;
+      //$nextTick() - метод во vue ждёт обновление dom
+      //код ниже это callback
+      /*
+      this.$nextTick(() => {
+        this.calculateMaxGraphElements();
+      });*/
+      //код ниже это promise
+      this.$nextTick().then(this.calculateMaxGraphElements
+      );
+
     },
     async getApi() {
         const f = await fetch(

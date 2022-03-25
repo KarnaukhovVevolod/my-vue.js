@@ -194,7 +194,7 @@ socket.addEventListener("message", e =>{
 socket.close();
 
 //принимаем сообщения по localStorage
-/*
+
 window.addEventListener('storage', function(event) {
 
      const handlers = tickersHandlers.get(event.key)??[];
@@ -212,7 +212,7 @@ window.addEventListener('storage', function(event) {
     console.log(event);
     console.log(event.key);
 });
-*/
+
 
 //принимаем сообщение через broadcast channel API
 //bc.addEventListener('message', function (e) { console.log(e.data); });
