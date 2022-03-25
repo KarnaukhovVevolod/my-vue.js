@@ -104,9 +104,11 @@
             @click="select(t)"
             :class="{
               'border-4': sel === t,
+              'bg-white': foolTickers.includes(t.name)===false,
+              'bg-red-100': foolTickers.includes(t.name)===true
             }"
-            class=""
-            class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
+
+            class=" overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
@@ -185,7 +187,7 @@
 
 <script>
 
-  import { /*loadTickers,*/ subscribeToTicker, unsubscriberFromTicker } from "./api";
+  import { /*loadTickers,*/ subscribeToTicker, unsubscriberFromTicker, FOOtick } from "./api";
 
 
   export default {
@@ -228,6 +230,7 @@
         if(windowData.page){
             this.page = windowData.page;
         }
+
         const tickerData = localStorage.getItem('cryptonomicon-list');
 /**/
         if (tickerData) {
@@ -241,6 +244,9 @@
 
             });
         }/**/
+        FOOtick(n=>this.updateFoolTickers(n));
+
+      //this.updateFoolTickers('');
         //setInterval(this.updateTickers,20000);
       //setInterval(loadTickers());
     },
@@ -293,7 +299,12 @@
 
   //методы
   methods: {
-
+    updateFoolTickers(nameTicker='FOO'){
+      //this.foolTickers[nameTicker]=nameTicker;
+      //this.foolTickers['FOO']='FOO';
+      this.foolTickers.push(nameTicker);
+      window.foolTickers = this.foolTickers;
+    },
     updateTicker(tickerName, price) {
       /*
       if(price == undefined){
@@ -467,6 +478,9 @@
                 document.title,
                 `${window.location.pathname}?filter=${v.filter}&page=${v.page}`
             );
+        },
+        FOOtick(){
+          this.foolTickers[FOOtick] = FOOtick;
         }
     }
 
