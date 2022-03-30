@@ -29,7 +29,7 @@ export const loadTickers_old = newTicker => {
     */
 }
 
-import { updateFoolTickers } from "./App";
+import { updateFoolTickers } from "./App_crypto";
 
 // получить стоимость криптовалютных пар с апишки? (задача решается выше)
 // получить стоимость ОБНОВЛЕНИЯ криптовалютных пар с АПИШКИ (задача решается ниже)
@@ -41,7 +41,7 @@ const socket = new WebSocket(`wss://streamer.cryptocompare.com/v2?api_key=${API_
 
 const invalidTicker = "INVALID_SUB";
 
-var priceUsdBtc=1;
+var priceUsdBtc = 1;
 // const loadTickers = () => {
 //     //debugger;
 //     if (tickersHandlers.size === 0) {
