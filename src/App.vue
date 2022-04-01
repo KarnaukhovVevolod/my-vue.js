@@ -7,6 +7,9 @@
     <hr />
     <TechCrunch v-if="selectedTab === 'techcrunch'" />
     <StarWars v-if="selectedTab === 'starwars'" />
+  test
+  test2
+  test3
   </div>
 </template>
 
