@@ -4,6 +4,7 @@
 
     add commit 1 добавили коммит для reverta
 
+    add commit 2 добавили второй коммит для reverta... добавили rebase в
 
 </template>
 
