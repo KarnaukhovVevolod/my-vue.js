@@ -9,7 +9,7 @@
     <StarWars v-if="selectedTab === 'starwars'" />
   test
   test2
-  test3
+  test333
   </div>
 </template>
 
